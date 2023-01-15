@@ -2,7 +2,7 @@
   "name": "oauth-assist",
   "version": "0.0.2",
   "description": "OAuth and OpenID client for Node.js runtime",
-  "main": "./lib/index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
@@ -12,12 +12,13 @@
     "type": "git",
     "url": "git+https://github.com/Vigneshwaran16/oauth-assist.git"
   },
-  "types": "./lib/index.d.ts",
+  "types": "lib/index.d.ts",
   "files": [
     "lib/**/*"
   ],
   "engines": {
-    "node": "18.10.0"
+    "node": ">=18.10.0",
+    "npm": ">=8.19.2"
   },
   "keywords": [
     "oauth1",
