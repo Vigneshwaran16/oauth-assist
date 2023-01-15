@@ -5,12 +5,17 @@
   "main": "./lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rmdir lib && tsc"
+    "build": "tsc",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Vigneshwaran16/oauth-assist.git"
   },
+  "types": "./lib/index.d.ts",
+  "files": [
+    "lib/**/*"
+  ],
   "engines": {
     "node": "18.10.0"
   },
