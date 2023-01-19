@@ -1,6 +1,6 @@
 {
   "name": "oauth-assist",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "OAuth and OpenID client for Node.js runtime",
   "main": "lib/index.js",
   "scripts": {
