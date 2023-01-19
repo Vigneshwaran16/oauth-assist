@@ -14,7 +14,7 @@
   },
   "types": "lib/index.d.ts",
   "files": [
-    "lib/**/*"
+    "lib"
   ],
   "engines": {
     "node": ">=18.10.0",

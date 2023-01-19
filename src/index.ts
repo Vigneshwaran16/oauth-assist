@@ -1,5 +1,5 @@
-const Log = () => {
-    console.log('Initialized package')
-}
+import { TwitterStrategy } from './oauth-1'
 
-module.exports = Log
+export const OAuth1 = {
+    TwitterStrategy
+}
