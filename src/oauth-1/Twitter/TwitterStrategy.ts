@@ -3,35 +3,78 @@ import { OAuthURLs, OAuthConstants } from "../utils";
 import OAuth from "oauth-1.0a";
 import axios from "axios";
 import { URLSearchParams } from "url";
-import { formatAxiosError} from "./utils"
 /*
     TYPE DEFINITIONS
 */
 type TwitterConfig = {
+    /** Obtained from Twitter developer portal under `Keys and tokens` for your application  
+     * 
+     * @required yes
+     * @type string.
+     *   
+     * Avoid using empty string 
+    */
     consumer_key: string
+
+    /**Obtained from Twitter developer portal under `Keys and tokens` for your application 
+     * 
+     * @required yes
+     * @type string.
+     *   
+     * Avoid using empty string 
+    */
     consumer_secret: string
+
+    /** Obtained from Twitter developer portal under `Keys and tokens` for your application
+     * 
+     * @required yes
+     * @type string.
+     *   
+     * Use absolute URLs 
+    */
     callback_url: string
 }
 
 type AccessTokenParams = {
+    /**
+     * Obtained from Twitter once an user logs in and authorizes your application
+     * 
+     * @required yes
+     * @type string 
+    */
     oauth_token: string
+    
+    /**
+     * Obtained from Twitter once an user logs in and authorizes your application
+     * 
+     * @required yes
+     * @type string 
+    */
     oauth_verifier: string
 }
 
 type ReturnValue = {
     status: number
-    data: object | string
+    data: object
 }
 
 type Callback = (error: ReturnValue | null, result: ReturnValue | null) => void
 
+/**
+ * Instance for Twitter OAuth1
+ * 
+ * @params { consumer_key, consumer_secret, callback_url }
+ */
 export class TwitterStrategy {
     private consumerKey
     private consumerSecret
     private callbackUrl
     private oauth
-    
+    private isClientCredsEmpty = false
     constructor(config: TwitterConfig) {
+        if(Object.values(config).some(x => x === '')) {
+            this.isClientCredsEmpty = true
+        }
         this.consumerKey = config.consumer_key
         this.consumerSecret = config.consumer_secret
         this.callbackUrl = config.callback_url
@@ -47,8 +90,22 @@ export class TwitterStrategy {
         })
     }
 
+    /** 
+     * @description Used to initiate authentication/authorization and return redirectUrl to authorize application access to twitter user
+     * 
+     * @param callback - Callback function => (error, result)
+     * 
+     */
     initiateAuthentication = async ( callback: Callback ) => {
-        console.log('started')
+        if(this.isClientCredsEmpty) {
+            return callback({
+                status: 400,
+                data: {
+                    error: OAuthConstants.TWITTER.MISSING_CLIENT_CREDS.ERROR,
+                    error_description: OAuthConstants.TWITTER.MISSING_CLIENT_CREDS.ERROR_DESCRIPTION
+                }
+            }, null)
+        }
         // Request Data that needs to signed before raising a Request to Twitter API 
         let reqData = {
             url: OAuthURLs.TWITTER.REQUEST_TOKEN,
@@ -74,7 +131,10 @@ export class TwitterStrategy {
                 if(queryParams.has('oauth_callback_confirmed') && queryParams.get('oauth_callback_confirmed') === 'false') {
                     return callback({
                             status: 400,
-                            data: OAuthConstants.TWITTER.OAUTH_CALLBACK_UNCONFIRMED
+                            data: {
+                                error: OAuthConstants.TWITTER.OAUTH_CALLBACK_UNCONFIRMED.ERROR,
+                                error_description: OAuthConstants.TWITTER.OAUTH_CALLBACK_UNCONFIRMED.ERROR_DESCRIPTION
+                            }
                         }, null)
                 }
                 const redirectUrl = OAuthURLs.TWITTER.AUTHENTICATE + `?${data}`
@@ -88,15 +148,54 @@ export class TwitterStrategy {
             }
         ).catch(
             (error) => {
-                callback(
-                    formatAxiosError(error),
-                    null
-                )
+                if(error.response) {
+                    callback({
+                        status: error.response.status,
+                        data: {
+                            error: error.response.data.errors[0]?.message,
+                            error_description: `Complete error response ${error.response.data.errors}`
+                        }
+                    }, null)
+                } else if(error.request) {
+                    callback({
+                        status: 400,
+                        data: {
+                            error: error.request?.res?.statusMessage || 'Bad Request',
+                            error_description: 'Please try again later!'
+                        }
+                    }, null)
+                } else {
+                    callback({
+                        status: 500,
+                        data: {
+                            error: 'Something went wrong',
+                            error_description: 'Please try again later!.'
+                        }
+                    }, null)
+                }
             }
         )
     }
 
+    /**
+     * @description Uses the oauth_verifier token in exchange for user `oauth_token` and `oauth_token_secret`
+     * 
+     * @param accessTokenParams - oauth_token and oauth_verifier obtained after authorizing application
+     * 
+     * @param callback - callback function => (error, result)
+     * 
+     */
     getAccessTokens = async (accessTokenParams: AccessTokenParams, callback: Callback) => {
+        if(this.isClientCredsEmpty) {
+            return callback({
+                status: 400,
+                data: {
+                    error: OAuthConstants.TWITTER.MISSING_CLIENT_CREDS.ERROR,
+                    error_description: OAuthConstants.TWITTER.MISSING_CLIENT_CREDS.ERROR_DESCRIPTION
+                }
+            }, null)
+        }
+
         await axios.post(OAuthURLs.TWITTER.ACCESS_TOKEN, accessTokenParams, {
             params: accessTokenParams
         }).then(
@@ -109,10 +208,32 @@ export class TwitterStrategy {
             }
         ).catch(
             (error) => {
-                callback(
-                    formatAxiosError(error),
-                    null
-                )
+                if(error.response) {
+                    callback({
+                        status: error.response.status,
+                        data: {
+                            error: error.response.data.errors[0]?.message,
+                            error_description: `Complete error response ${error.response.data.errors}`
+                        }
+
+                    }, null)
+                } else if(error.request) {
+                    callback({
+                        status: 400,
+                        data: {
+                            error: error.request?.res?.statusMessage || 'Bad Request',
+                            error_description: 'Please try again later!'
+                        }
+                    }, null)
+                } else {
+                    callback({
+                        status: 500,
+                        data: {
+                            error: 'Something went wrong',
+                            error_description: 'Please try again later!.'
+                        }
+                    }, null)
+                }
             }
         )
     }

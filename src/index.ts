@@ -1,10 +1,10 @@
-import { TwitterStrategy } from './oauth-1'
-import { LinkedinStrategy } from './oauth-2'
+import { TwitterStrategy } from './oauth-1/Twitter/TwitterStrategy'
+import { LinkedinStrategy as LinkedinOAuth2} from './oauth-2/LinkedIn/LinkedinStrategy'
 
 export const OAuth1 = {
     TwitterStrategy
 }
 
-export const OAuth2 = {
-    LinkedinStrategy
+export {
+    LinkedinOAuth2
 }
