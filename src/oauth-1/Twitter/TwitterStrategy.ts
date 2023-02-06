@@ -3,24 +3,59 @@ import { OAuthURLs, OAuthConstants } from "../utils";
 import OAuth from "oauth-1.0a";
 import axios from "axios";
 import { URLSearchParams } from "url";
-import { formatAxiosError} from "./utils"
 /*
     TYPE DEFINITIONS
 */
 type TwitterConfig = {
+    /** Obtained from Linkedin developer portal under application credentials 
+     * 
+     * @required yes
+     * @type string.
+     *   
+     * Avoid using empty string 
+    */
     consumer_key: string
+
+    /** Obtained from Linkedin developer portal under application credentials 
+     * 
+     * @required yes
+     * @type string.
+     *   
+     * Avoid using empty string 
+    */
     consumer_secret: string
+
+    /** Obtained from Linkedin developer portal under application credentials 
+     * 
+     * @required yes
+     * @type string.
+     *   
+     * Use absolute URLs 
+    */
     callback_url: string
 }
 
 type AccessTokenParams = {
+    /**
+     * Obtained from Twitter once an user logs in and authorizes your application
+     * 
+     * @required yes
+     * @type string 
+    */
     oauth_token: string
+    
+    /**
+     * Obtained from Twitter once an user logs in and authorizes your application
+     * 
+     * @required yes
+     * @type string 
+    */
     oauth_verifier: string
 }
 
 type ReturnValue = {
     status: number
-    data: object | string
+    data: object
 }
 
 type Callback = (error: ReturnValue | null, result: ReturnValue | null) => void
@@ -48,7 +83,6 @@ export class TwitterStrategy {
     }
 
     initiateAuthentication = async ( callback: Callback ) => {
-        console.log('started')
         // Request Data that needs to signed before raising a Request to Twitter API 
         let reqData = {
             url: OAuthURLs.TWITTER.REQUEST_TOKEN,
@@ -74,7 +108,9 @@ export class TwitterStrategy {
                 if(queryParams.has('oauth_callback_confirmed') && queryParams.get('oauth_callback_confirmed') === 'false') {
                     return callback({
                             status: 400,
-                            data: OAuthConstants.TWITTER.OAUTH_CALLBACK_UNCONFIRMED
+                            data: {
+                                error: OAuthConstants.TWITTER.OAUTH_CALLBACK_UNCONFIRMED
+                            }
                         }, null)
                 }
                 const redirectUrl = OAuthURLs.TWITTER.AUTHENTICATE + `?${data}`
@@ -88,10 +124,25 @@ export class TwitterStrategy {
             }
         ).catch(
             (error) => {
-                callback(
-                    formatAxiosError(error),
-                    null
-                )
+                if(error.response) {
+                    callback({
+                        status: error.response.status,
+                        data: error.response.data
+                    }, null)
+                } else if(error.request) {
+                    callback({
+                        status: 400,
+                        data: error.request?.res?.statusMessage || 'Bad Request'
+                    }, null)
+                } else {
+                    callback({
+                        status: 500,
+                        data: {
+                            error: 'Something went wrong',
+                            errorDescription: 'Please try again later!.'
+                        }
+                    }, null)
+                }
             }
         )
     }
@@ -109,10 +160,25 @@ export class TwitterStrategy {
             }
         ).catch(
             (error) => {
-                callback(
-                    formatAxiosError(error),
-                    null
-                )
+                if(error.response) {
+                    callback({
+                        status: error.response.status,
+                        data: error.response.data
+                    }, null)
+                } else if(error.request) {
+                    callback({
+                        status: 400,
+                        data: error.request?.res?.statusMessage || 'Bad Request'
+                    }, null)
+                } else {
+                    callback({
+                        status: 500,
+                        data: {
+                            error: 'Something went wrong',
+                            errorDescription: 'Please try again later!.'
+                        }
+                    }, null)
+                }
             }
         )
     }
