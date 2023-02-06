@@ -8,6 +8,13 @@ export const OAuthURLs = Object.freeze({
 
 export const OAuthConstants = Object.freeze({
     TWITTER: {
-        OAUTH_CALLBACK_UNCONFIRMED: 'Callback is not confirmed by Twitter'
+        OAUTH_CALLBACK_UNCONFIRMED: {
+            ERROR: 'Callback is not confirmed by Twitter',
+            ERROR_DESCRIPTION: 'This is a verification step mandated by Twitter. Considering properly setting redirect/callback URLs in twitter developer portal for your application. For further details, look into Twitter OAuth official docs'
+        },
+        MISSING_CLIENT_CREDS: {
+            ERROR: 'Missing client credentials',
+            ERROR_DESCRIPTION: 'One or more client credentials are empty. Client credentials include `consumer_key`, `consumer_secret`, `callback_url`'
+        }
     }
 })

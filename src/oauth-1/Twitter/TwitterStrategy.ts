@@ -7,7 +7,7 @@ import { URLSearchParams } from "url";
     TYPE DEFINITIONS
 */
 type TwitterConfig = {
-    /** Obtained from Linkedin developer portal under application credentials 
+    /** Obtained from Twitter developer portal under `Keys and tokens` for your application  
      * 
      * @required yes
      * @type string.
@@ -16,7 +16,7 @@ type TwitterConfig = {
     */
     consumer_key: string
 
-    /** Obtained from Linkedin developer portal under application credentials 
+    /**Obtained from Twitter developer portal under `Keys and tokens` for your application 
      * 
      * @required yes
      * @type string.
@@ -25,7 +25,7 @@ type TwitterConfig = {
     */
     consumer_secret: string
 
-    /** Obtained from Linkedin developer portal under application credentials 
+    /** Obtained from Twitter developer portal under `Keys and tokens` for your application
      * 
      * @required yes
      * @type string.
@@ -60,13 +60,21 @@ type ReturnValue = {
 
 type Callback = (error: ReturnValue | null, result: ReturnValue | null) => void
 
+/**
+ * Instance for Twitter OAuth1
+ * 
+ * @params { consumer_key, consumer_secret, callback_url }
+ */
 export class TwitterStrategy {
     private consumerKey
     private consumerSecret
     private callbackUrl
     private oauth
-    
+    private isClientCredsEmpty = false
     constructor(config: TwitterConfig) {
+        if(Object.values(config).some(x => x === '')) {
+            this.isClientCredsEmpty = true
+        }
         this.consumerKey = config.consumer_key
         this.consumerSecret = config.consumer_secret
         this.callbackUrl = config.callback_url
@@ -82,7 +90,22 @@ export class TwitterStrategy {
         })
     }
 
+    /** 
+     * @description Used to initiate authentication/authorization and return redirectUrl to authorize application access to twitter user
+     * 
+     * @param callback - Callback function => (error, result)
+     * 
+     */
     initiateAuthentication = async ( callback: Callback ) => {
+        if(this.isClientCredsEmpty) {
+            return callback({
+                status: 400,
+                data: {
+                    error: OAuthConstants.TWITTER.MISSING_CLIENT_CREDS.ERROR,
+                    error_description: OAuthConstants.TWITTER.MISSING_CLIENT_CREDS.ERROR_DESCRIPTION
+                }
+            }, null)
+        }
         // Request Data that needs to signed before raising a Request to Twitter API 
         let reqData = {
             url: OAuthURLs.TWITTER.REQUEST_TOKEN,
@@ -109,7 +132,8 @@ export class TwitterStrategy {
                     return callback({
                             status: 400,
                             data: {
-                                error: OAuthConstants.TWITTER.OAUTH_CALLBACK_UNCONFIRMED
+                                error: OAuthConstants.TWITTER.OAUTH_CALLBACK_UNCONFIRMED.ERROR,
+                                error_description: OAuthConstants.TWITTER.OAUTH_CALLBACK_UNCONFIRMED.ERROR_DESCRIPTION
                             }
                         }, null)
                 }
@@ -127,19 +151,25 @@ export class TwitterStrategy {
                 if(error.response) {
                     callback({
                         status: error.response.status,
-                        data: error.response.data
+                        data: {
+                            error: error.response.data.errors[0]?.message,
+                            error_description: `Complete error response ${error.response.data.errors}`
+                        }
                     }, null)
                 } else if(error.request) {
                     callback({
                         status: 400,
-                        data: error.request?.res?.statusMessage || 'Bad Request'
+                        data: {
+                            error: error.request?.res?.statusMessage || 'Bad Request',
+                            error_description: 'Please try again later!'
+                        }
                     }, null)
                 } else {
                     callback({
                         status: 500,
                         data: {
                             error: 'Something went wrong',
-                            errorDescription: 'Please try again later!.'
+                            error_description: 'Please try again later!.'
                         }
                     }, null)
                 }
@@ -147,7 +177,25 @@ export class TwitterStrategy {
         )
     }
 
+    /**
+     * @description Uses the oauth_verifier token in exchange for user `oauth_token` and `oauth_token_secret`
+     * 
+     * @param accessTokenParams - oauth_token and oauth_verifier obtained after authorizing application
+     * 
+     * @param callback - callback function => (error, result)
+     * 
+     */
     getAccessTokens = async (accessTokenParams: AccessTokenParams, callback: Callback) => {
+        if(this.isClientCredsEmpty) {
+            return callback({
+                status: 400,
+                data: {
+                    error: OAuthConstants.TWITTER.MISSING_CLIENT_CREDS.ERROR,
+                    error_description: OAuthConstants.TWITTER.MISSING_CLIENT_CREDS.ERROR_DESCRIPTION
+                }
+            }, null)
+        }
+
         await axios.post(OAuthURLs.TWITTER.ACCESS_TOKEN, accessTokenParams, {
             params: accessTokenParams
         }).then(
@@ -163,19 +211,26 @@ export class TwitterStrategy {
                 if(error.response) {
                     callback({
                         status: error.response.status,
-                        data: error.response.data
+                        data: {
+                            error: error.response.data.errors[0]?.message,
+                            error_description: `Complete error response ${error.response.data.errors}`
+                        }
+
                     }, null)
                 } else if(error.request) {
                     callback({
                         status: 400,
-                        data: error.request?.res?.statusMessage || 'Bad Request'
+                        data: {
+                            error: error.request?.res?.statusMessage || 'Bad Request',
+                            error_description: 'Please try again later!'
+                        }
                     }, null)
                 } else {
                     callback({
                         status: 500,
                         data: {
                             error: 'Something went wrong',
-                            errorDescription: 'Please try again later!.'
+                            error_description: 'Please try again later!.'
                         }
                     }, null)
                 }
