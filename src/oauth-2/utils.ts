@@ -2,11 +2,15 @@ export const OAuth2URLs = Object.freeze({
     LINKEDIN: {
         REQUEST_AUTH_CODE: 'https://www.linkedin.com/oauth/v2/authorization',
         ACCESS_TOKEN: 'https://www.linkedin.com/oauth/v2/accessToken'
+    }, 
+    GITHUB: {
+        AUTHORIZE: 'https://github.com/login/oauth/authorize',
+        ACCESS_TOKEN: 'https://github.com/login/oauth/access_token'
     }
 })
 
 export const Constants = Object.freeze({
-    LINKEDIN: {
+    GENERIC: {
         MISSING_CREDS: {
             ERROR: 'Missing client credentials',
             ERROR_DESCRIPTION: 'One or more client credentials are empty. Client credentials include `client_id`, `client_secret`, `redirect_uri`'

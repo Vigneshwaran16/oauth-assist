@@ -42,18 +42,17 @@ type LinkedInConfig = {
 type AuthorizationOptions = {
     /** For the list of available scopes, visit the official docs
      * @docs https://learn.microsoft.com/en-us/linkedin/shared/authentication/getting-access  
+     * @required yes
      * @type string.
      * Space separated scopes
      * 
-     * @example GOOD: "r_liteprofile r_emailaddress"
-     * @example BAD: "r_liteprofiler_emailaddress"
     */
     scope: string,
     /** If `yes`, the package will take care of generating and validating state value during authorization
      * 
      * @required yes
      * @type boolean.
-     * Avoid using empty string
+     * 
     */
     handleState: boolean
     /** A random alphanumeric string used during authorization to ensure the response belongs to a request initiated by the same user
@@ -66,8 +65,19 @@ type AuthorizationOptions = {
 }
 
 type AccessTokenParams = {
-    code: string
-    state?: string
+    /** Authorization code sent from Github
+     * 
+     * @required true
+     * @type string
+     */
+     code: string
+
+     /** State value for the current OAuth flow sent from Github 
+      * 
+      * @required no
+      * @type string
+      */
+     state?: string
 }
 
 type ReturnValue = {
@@ -120,8 +130,8 @@ export class LinkedinStrategy {
             return callback({
                 status: 400,
                 data: {
-                    error: Constants.LINKEDIN.MISSING_CREDS.ERROR,
-                    error_description: Constants.LINKEDIN.MISSING_CREDS.ERROR_DESCRIPTION,
+                    error: Constants.GENERIC.MISSING_CREDS.ERROR,
+                    error_description: Constants.GENERIC.MISSING_CREDS.ERROR_DESCRIPTION,
                 }
             }, null)
         }
@@ -138,6 +148,7 @@ export class LinkedinStrategy {
             reqParams.state = this.state
         }
 
+        delete reqParams['handleState']
         const authUrl = `${OAuth2URLs.LINKEDIN.REQUEST_AUTH_CODE}?${qs.stringify(reqParams)}`
         callback(null, {
             status: 200,
@@ -159,8 +170,8 @@ export class LinkedinStrategy {
             return callback({
                 status: 400,
                 data: {
-                    error: Constants.LINKEDIN.MISSING_CREDS.ERROR,
-                    error_description: Constants.LINKEDIN.MISSING_CREDS.ERROR_DESCRIPTION
+                    error: Constants.GENERIC.MISSING_CREDS.ERROR,
+                    error_description: Constants.GENERIC.MISSING_CREDS.ERROR_DESCRIPTION
                 }
             }, null)
         }
@@ -170,8 +181,8 @@ export class LinkedinStrategy {
                 return callback({
                     status: 400,
                     data: {
-                        error: Constants.LINKEDIN.STATE_MISMATCH.ERROR,
-                        error_description: Constants.LINKEDIN.STATE_MISMATCH.ERROR_DESCRIPTION
+                        error: Constants.GENERIC.STATE_MISMATCH.ERROR,
+                        error_description: Constants.GENERIC.STATE_MISMATCH.ERROR_DESCRIPTION
                     }
                 }, null)
         }
