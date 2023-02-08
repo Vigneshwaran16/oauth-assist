@@ -1,5 +1,5 @@
 import axios from "axios"
-import { OAuthURLs } from "../utils"
+import { Constants, OAuth2URLs } from "../utils"
 import * as qs from 'querystring'
 const nanoid = require('nanoid/async')
 
@@ -55,8 +55,8 @@ export class GithubOAuth2 {
             return callback({
                 status: 400,
                 data: {
-                    error: 'Missing client credentials',
-                    error_description: 'One or more Client Credentials are empty. Client credentials include `client_id`,`client_secret`,`redirect_uri`'
+                    error: Constants.GENERIC.MISSING_CREDS.ERROR,
+                    error_description: Constants.GENERIC.MISSING_CREDS.ERROR_DESCRIPTION
                 }
             }, null)
         }
@@ -76,7 +76,7 @@ export class GithubOAuth2 {
         callback(null, {
             status: 200,
             data: {
-                redirectUrl: `${OAuthURLs.GITHUB.AUTHORIZE}?${qs.stringify(reqParams)}`
+                authUrl: `${OAuth2URLs.GITHUB.AUTHORIZE}?${qs.stringify(reqParams)}`
             }
         })
     }
@@ -86,8 +86,8 @@ export class GithubOAuth2 {
             return callback({
                 status: 400,
                 data: {
-                    error: 'Missing client credentials',
-                    error_description: 'One or more Client Credentials are empty. Client credentials include `client_id`,`client_secret`,`redirect_uri`'
+                    error: Constants.GENERIC.MISSING_CREDS.ERROR,
+                    error_description: Constants.GENERIC.MISSING_CREDS.ERROR_DESCRIPTION
                 }
             }, null)
         }
@@ -97,8 +97,8 @@ export class GithubOAuth2 {
                 return callback({
                     status: 400,
                     data: {
-                        error: 'State mismatch',
-                        error_description: 'State value when initiating authorization is different from the one received now. If you are sure of managing state value, set `handleState` to false in `initiateAuthorization()`'
+                        error: Constants.GENERIC.STATE_MISMATCH.ERROR,
+                        error_description: Constants.GENERIC.STATE_MISMATCH.ERROR_DESCRIPTION
                     }
                 }, null)
             }
@@ -110,7 +110,7 @@ export class GithubOAuth2 {
         }
         
         await axios.post(
-            OAuthURLs.GITHUB.ACCESS_TOKEN,
+            OAuth2URLs.GITHUB.ACCESS_TOKEN,
             reqParams,
             {
                 params: reqParams

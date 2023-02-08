@@ -120,8 +120,8 @@ export class LinkedinStrategy {
             return callback({
                 status: 400,
                 data: {
-                    error: Constants.LINKEDIN.MISSING_CREDS.ERROR,
-                    error_description: Constants.LINKEDIN.MISSING_CREDS.ERROR_DESCRIPTION,
+                    error: Constants.GENERIC.MISSING_CREDS.ERROR,
+                    error_description: Constants.GENERIC.MISSING_CREDS.ERROR_DESCRIPTION,
                 }
             }, null)
         }
@@ -159,8 +159,8 @@ export class LinkedinStrategy {
             return callback({
                 status: 400,
                 data: {
-                    error: Constants.LINKEDIN.MISSING_CREDS.ERROR,
-                    error_description: Constants.LINKEDIN.MISSING_CREDS.ERROR_DESCRIPTION
+                    error: Constants.GENERIC.MISSING_CREDS.ERROR,
+                    error_description: Constants.GENERIC.MISSING_CREDS.ERROR_DESCRIPTION
                 }
             }, null)
         }
@@ -170,8 +170,8 @@ export class LinkedinStrategy {
                 return callback({
                     status: 400,
                     data: {
-                        error: Constants.LINKEDIN.STATE_MISMATCH.ERROR,
-                        error_description: Constants.LINKEDIN.STATE_MISMATCH.ERROR_DESCRIPTION
+                        error: Constants.GENERIC.STATE_MISMATCH.ERROR,
+                        error_description: Constants.GENERIC.STATE_MISMATCH.ERROR_DESCRIPTION
                     }
                 }, null)
         }
